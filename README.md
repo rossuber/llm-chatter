@@ -2,6 +2,8 @@
 
 Single HTML file interface to chat with Ollama local large language models (LLMs) or OpenAI.com LLMs.
 
+![Application screenshot](https://github.com/rossuber/llm-chatter/blob/main/dist/screenshot.webp?raw=true)
+
 # Installation
 1. Install Ollama and add at least one model.
 2. Run `wget https://raw.githubusercontent.com/rossuber/llm-chatter/master/dist/index.html`
