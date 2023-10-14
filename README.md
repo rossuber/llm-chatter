@@ -5,7 +5,7 @@ Single HTML file interface to chat with Ollama local large language models (LLMs
 ![Application screenshot](https://github.com/rossuber/llm-chatter/blob/main/dist/screenshot.webp?raw=true)
 
 # Installation
-1. Install Ollama and add at least one model.
+1. Install Ollama and [add at least one model](https://www.ollama.ai/library).
 2. Run `wget https://raw.githubusercontent.com/rossuber/llm-chatter/master/dist/index.html`
 3. Run `python3 -m http.server 8181`
 4. Open `localhost:8181` in your web browser.
@@ -14,4 +14,8 @@ Single HTML file interface to chat with Ollama local large language models (LLMs
 Built with: Vite / Bun / React / TailwindJSS / FontAwesome
 
 The web app pulls icon images from https://ka-f.fontawesome.com.
+
 The web app makes API calls to http://localhost:11434 and https://api.openai.com.
+
+# Thank you
+[Ollama.ai](https://www.ollama.ai/)
