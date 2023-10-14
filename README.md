@@ -23,3 +23,5 @@ The web app makes API calls to http://localhost:11434 and https://api.openai.com
 
 # Thank you
 [Ollama.ai](https://www.ollama.ai/)
+
+[OpenAI.com](https://www.openai.com/)
