@@ -11,7 +11,7 @@ Single HTML file interface to chat with Ollama local large language models (LLMs
 4. Open `localhost:8181` in your web browser.
 5. Optional: Register an account at [openai.com](https://openai.com/) and subscribe for an API key. Paste it into the 'Open AI' password field while OpenAI Chat is selected.
 
-Built with: Vite / Bun / React / TailwindJSS / FontAwesome
+Built with: [Vite](https://vitejs.dev/) / [Bun](https://bun.sh/) / [React](https://react.dev/) / [TailwindCSS](https://tailwindcss.com/) / [FontAwesome](https://fontawesome.com/)
 
 The web app pulls icon images from https://ka-f.fontawesome.com.
 
