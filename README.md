@@ -7,7 +7,7 @@ Single HTML file interface to chat with Ollama local large language models (LLMs
 # Installation
 1. Install Ollama and [add at least one model](https://www.ollama.ai/library).
    - `curl https://ollama.ai/install.sh | sh`
-   - `ollama run mistral-openorca:7b`
+   - `ollama pull mistral-openorca:7b`
 3. Run `wget https://raw.githubusercontent.com/rossuber/llm-chatter/master/dist/index.html`
 4. Run `python3 -m http.server 8181`
 5. Open `localhost:8181` in your web browser.
