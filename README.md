@@ -17,5 +17,9 @@ The web app pulls icon images from https://ka-f.fontawesome.com.
 
 The web app makes API calls to http://localhost:11434 and https://api.openai.com.
 
+[Ollama API docs](https://github.com/jmorganca/ollama/blob/main/docs/api.md)
+
+[OpenAI API docs](https://platform.openai.com/docs/api-reference)
+
 # Thank you
 [Ollama.ai](https://www.ollama.ai/)
