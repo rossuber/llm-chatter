@@ -17,6 +17,7 @@ function App() {
   const [topp, setTopp] = useState("1.0");
   const [localModels, setLocalModels] = useState({});
   const [apiKey, setApiKey] = useState("");
+  const [langchainURL, setLangchainURL] = useState("https://");
 
   const makeNewComponent = () => {
     const newChat = { 
@@ -28,9 +29,9 @@ function App() {
       samplingType: samplingType, 
       temperature: temperature, 
       topp: topp, 
-      adv: advancedSetting,
       localModels: localModels,
-      apiKey: apiKey
+      apiKey: apiKey,
+      langchainURL: langchainURL
     };
     
     setComponentList([...componentList, newChat]);
@@ -49,6 +50,10 @@ function App() {
     setApiKey(e.target.value);
   };
 
+  function handleLangchainURLChange(e) {
+    setLangchainURL(e.target.value);
+  };
+
   function handleTypeChange(e) {
     setSamplingType(e.target.value);
   };
@@ -60,6 +65,9 @@ function App() {
         setModel("gpt-4");
       break;
       case "Ollama Chat" : 
+        setModel(model);
+      break;
+      case "Ollama LangChain" : 
         setModel(model);
       break;
       default : setModel(model);
@@ -102,8 +110,8 @@ function App() {
       { name: "gpt-4" },
       { name: "gpt-4-32k" }
     ],
-
-    "Ollama Chat": localModels
+    "Ollama Chat": localModels,
+    "Ollama LangChain": localModels
   };
 
   const checkModels = async () => {
@@ -152,14 +160,16 @@ function App() {
                           <input className="w-8 h-8 cursor-pointer mb-4" type="checkbox" name="advancedSetting" checked={advancedSetting} onChange={handleCheckboxChange} /> <label className="cursor-pointer leading-6"> Advanced Settings</label> 
                         </td>
                       </tr>
-                      <tr>
-                        <td>
-                          System Message
-                        </td>
-                        <td className="">
-                          <TextareaAutosize minRows="3" maxRows="5" className="w-full font-bold col-span-2 hover:bg-nosferatu-400 p-4 bg-nosferatu-100 text-sm font-mono text-black ring-1 hover:ring-2 ring-vonCount-900 rounded-xl" placeholder="'System' Message" onChange={(e) => handleSysMsgChange(e)} value={sysMsg} />
-                        </td>
-                      </tr>
+                      { responseType != "Ollama LangChain" &&
+                        <tr>
+                          <td>
+                            System Message
+                          </td>
+                          <td className="">
+                            <TextareaAutosize minRows="3" maxRows="5" className="w-full font-bold col-span-2 hover:bg-nosferatu-400 p-4 bg-nosferatu-100 text-sm font-mono text-black ring-1 hover:ring-2 ring-vonCount-900 rounded-xl" placeholder="'System' Message" onChange={(e) => handleSysMsgChange(e)} value={sysMsg} />
+                          </td>
+                        </tr>
+                      }
                     { advancedSetting && 
                       <>
                         <tr>
@@ -168,6 +178,7 @@ function App() {
                             <select name="responseType" id="responseType" className="hover:bg-nosferatu-400 cursor-pointer mb-2 p-4 min-w-full bg-nosferatu-100 font-mono rounded-xl text-black ring-1 hover:ring-2 ring-vonCount-900" onChange = {(e) => handleRespChange(e)} value={responseType}>
                                 <option value="OpenAI Chat">OpenAI Chat</option>
                                 <option value="Ollama Chat">Ollama Chat</option>
+                                <option value="Ollama LangChain">Ollama LangChain</option>
                             </select>
                           </td>
                         </tr>
@@ -175,6 +186,13 @@ function App() {
                           <tr>
                             <td>API Key</td>
                             <td className="pb-4 tracking-wide text-center font-bold text-nosferatu-900"><input className="w-full font-bold hover:bg-nosferatu-400 p-6 bg-nosferatu-100 text-sm font-mono text-black ring-1 hover:ring-2 ring-vonCount-900 rounded-xl" onChange = {(e) => handleApiKeyChange(e)} type="password" value={apiKey}></input></td>
+                          </tr>
+                          : <></>
+                        }
+                        { responseType === "Ollama LangChain" ? 
+                          <tr>
+                            <td>Embed Source</td>
+                            <td className="pb-4 tracking-wide text-center font-bold text-nosferatu-900"><input className="w-full font-bold hover:bg-nosferatu-400 p-6 bg-nosferatu-100 text-sm font-mono text-black ring-1 hover:ring-2 ring-vonCount-900 rounded-xl" onChange = {(e) => handleLangchainURLChange(e)} type="text" value={langchainURL}></input></td>
                           </tr>
                           : <></>
                         }
@@ -268,16 +286,16 @@ function App() {
         {componentList.slice().reverse().map((container) => (
           <Chat 
             key={container.id} 
-            systemMessage={container.systemMessage} 
-            responseType={container.responseType} 
-            model={container.model} 
-            samplingType={container.samplingType} 
-            adv={container.adv} 
-            temperature={container.temperature} 
-            topp={container.topp} 
-            userID={container.theID} 
+            systemMessage={container.systemMessage}
+            responseType={container.responseType}
+            model={container.model}
+            samplingType={container.samplingType}
+            temperature={container.temperature}
+            topp={container.topp}
+            userID={container.theID}
             onClose={() => handleClose(container.id)} numba={container.numba}
             apiKey={container.apiKey}
+            langchainURL={container.langchainURL}
           />
         ))}
     </div>
