@@ -8,13 +8,26 @@ import copy from "copy-to-clipboard";
 import Hyphenated from 'react-hyphen';
 import { animated, Spring } from "react-spring";
 
-const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, topp, userID, adv, apiKey}) => {
+const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, topp, userID, apiKey, langchainURL}) => {
+
+    let sysMsgs = [];
+    switch (responseType) {
+        case "OpenAI Chat" :
+            sysMsgs = [{"role": "system", "content": systemMessage}];
+            break;
+        case "Ollama LangChain" :
+            sysMsgs = [];
+            break;
+        case "Ollama Chat" :
+            sysMsgs = [{"role": "system", "content": systemMessage}];
+            break;
+      };
 
     const [chatInput, setChatInput] = useState("");
     const [isClicked, setIsClicked] = useState(false);
     const [isError, setIsError] = useState(false);
     const [sentOne, setSentOne] = useState(false);
-    const [chatMessages, setChatMessages] = useState([{"role": "system", "content": systemMessage}]);
+    const [chatMessages, setChatMessages] = useState(sysMsgs);
     const [chatContext, setChatContext] = useState([]);
     const [chatDuration, setChatDuration] = useState(0.0);
 
@@ -23,6 +36,7 @@ const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, 
         let sendPacket = {};
         let sendHeaders = {};
         const bearer = "Bearer " + apiKey;
+        const contType = { "Content-Type": "application/json" };
 
         switch (responseType) {
           case "OpenAI Chat" :
@@ -41,7 +55,18 @@ const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, 
                 }
               };
           break;
-          default : 
+          case "Ollama LangChain" :
+              endPath = "http://localhost:8080";
+              sendPacket = {
+                  model: model,
+                  input: input,
+                  temperature: parseFloat(temperature),
+                  topP: parseFloat(topp),
+                  langchainURL: langchainURL
+              };
+              sendHeaders = { headers: contType };
+          break;
+          case "Ollama Chat" :
               endPath = "http://localhost:11434/api/generate";
               sendPacket = {
                   model: model,
@@ -51,39 +76,41 @@ const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, 
                   options: {"temperature": parseFloat(temperature), "top_p": parseFloat(topp)},
                   stream: false
               };
-              sendHeaders = {
-                headers: {
-                  "Content-Type": "application/json"
-                }
-              };
+              sendHeaders = { headers: contType };
           break;
         };
 
         try {
             const startTime = Date.now();
 
-            const response = await axios.post(
+            let response = await axios.post(
                 endPath,
                 sendPacket,
                 sendHeaders
-              );
+            );
+            
+            const endTime = Date.now();
+            console.log(response);
+            const durTime = ((endTime - startTime) / 1000).toFixed(2);
+            setChatDuration(durTime);
 
-              const endTime = Date.now();
-              const durTime = ((endTime - startTime) / 1000).toFixed(2);
-              setChatDuration(durTime);
+            let theEnd = "";
 
-              let theEnd = "";
+            switch (responseType) {
+                case "OpenAI Chat" : 
+                    theEnd = response.data.choices[0].message.content;
+                    break;
 
-              switch (responseType) {
-                  case "OpenAI Chat" : 
-                      theEnd = response.data.choices[0].message.content;
-                  break;
-                  default : 
-                      const respo = response.data.response;
-                      theEnd = respo.trim();
-                      setChatContext(response.data.context);
-                      console.log(response);
-                  break;
+                case "Ollama Chat" : 
+                    const respo = response.data.response;
+                    theEnd = respo.trim();
+                    setChatContext(response.data.context);
+                    break;
+                
+                case "Ollama LangChain" : 
+                    const respon = response.data.text;
+                    theEnd = respon.trim();
+                    break;
               };
   
               return theEnd;
@@ -162,6 +189,12 @@ const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, 
                         <td><b>temperature:</b><br/><i>{temperature}</i></td>
                         <td><b>top_p:</b><br/><i>{topp}</i></td>
                     </tr>
+                    { responseType === "Ollama LangChain" &&
+                        <tr>
+                            <td colSpan="3"><b>Embed Source:</b><br/>
+                            <a className="underline" href={langchainURL} alt={langchainURL}>Link</a></td>
+                        </tr>
+                    }
                     {chatMessages.map((obj, index) => (
                         <tr key={index}>
                             <td onCopy={handleCopy} colSpan="3" className={obj.role === "user" || obj.role === "system" ? 
@@ -178,7 +211,7 @@ const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, 
                             </td>
                         </tr>
                     ))}
-                    { !isError && 
+                    { (!isError && ((responseType != "Ollama LangChain") || !sentOne)) && 
                         <>
                             {sentOne &&
                                 <tr>
