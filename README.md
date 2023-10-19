@@ -5,6 +5,7 @@ Single HTML file interface to chat with Ollama local large language models (LLMs
 ![Application screenshot](https://github.com/rossuber/llm-chatter/blob/main/dist/screenshot.webp?raw=true)
 
 # Installation
+
 1. Install Ollama and [add at least one model](https://www.ollama.ai/library).
    - `curl https://ollama.ai/install.sh | sh`
    - `ollama pull mistral-openorca:7b`
@@ -13,9 +14,10 @@ Single HTML file interface to chat with Ollama local large language models (LLMs
 5. Open `localhost:8181` in your web browser.
 6. Optional: Register an account at [openai.com](https://openai.com/) and subscribe for an API key. Paste it into the 'Open AI' password field while OpenAI Chat is selected.
 
+# Optional LangChain node.js server installation steps
+
 Now supports LangChain URL embedding! The LangChain Ollama implementation is incompatible with something (like React? I am not sure), so it is necessary to run a separate node.js Express server to handle API requests at http://localhost:8080
 
-# Optional LangChain node.js server installation steps
 1. Run `mkdir langchain-ollama`
 2. Run `cd langchain-ollama`
 3. Run `wget https://raw.githubusercontent.com/rossuber/llm-chatter/master/langchain-ollama/index.js`
