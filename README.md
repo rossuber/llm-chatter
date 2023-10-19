@@ -29,7 +29,7 @@ Built with: [Vite](https://vitejs.dev/) / [Bun](https://bun.sh/) / [React](https
 
 The web app pulls icon images from https://ka-f.fontawesome.com.
 
-The web app makes API calls to http://localhost:11434 and https://api.openai.com.
+The web app makes API calls to http://localhost:11434 (ollama), http://localhost:8080 (the langchain-ollama node.js Express server), and https://api.openai.com.
 
 [Ollama API docs](https://github.com/jmorganca/ollama/blob/main/docs/api.md)
 
