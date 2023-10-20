@@ -56,7 +56,7 @@ const Chat = ({numba, onClose, systemMessage, responseType, model, temperature, 
               };
           break;
           case "Ollama LangChain" :
-              endPath = "http://localhost:8080";
+              endPath = "http://localhost:8080/langchain";
               sendPacket = {
                   model: model,
                   input: input,
