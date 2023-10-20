@@ -67,9 +67,12 @@ function App() {
   };
 
   function isValidURL(input) {
-    const urlPattern = /^(https?|http):\/\/[^\s/$.?#].[^\s]*\.[^\s/$.?#]+$/;
-    return urlPattern.test(input);
-  }
+    if (/\s/.test(input)) {
+      return false; // Input contains whitespace, return false.
+    };
+    const res = input.match(/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi);
+    return (res !== null);
+  };
 
   function handleRespChange(e) {
     setResponseType(e.target.value);
