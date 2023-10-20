@@ -14,7 +14,7 @@ const port = 8080;
 app.use(bodyParser.json());
 app.use(cors());
 
-app.post('/', async (req, res) => {
+app.post('/langchain', async (req, res) => {
   const theData = req.body;
 
   console.log(theData.model);
@@ -50,6 +50,10 @@ app.post('/', async (req, res) => {
   res.header("Access-Control-Allow-Headers", "Content-Type");
 
   res.send(result);
+});
+
+app.post('/check', async (req, res) => {
+  res.send("ok");
 });
 
 app.listen(port, () => {
