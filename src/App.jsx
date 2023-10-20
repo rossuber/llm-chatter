@@ -10,6 +10,7 @@ function App() {
   const [componentList, setComponentList] = useState([]);
   const [contactCount, setContactCount] = useState(1);
   const [advancedSetting, setAdvancedSetting] = useState(false);
+  const [serverCheck, setServerCheck] = useState(false);
   const [samplingType, setSamplingType] = useState("temperature");
   const [responseType, setResponseType] = useState("Ollama Chat");
   const [temperature, setTemperature] = useState("1.0");
@@ -18,6 +19,7 @@ function App() {
   const [localModels, setLocalModels] = useState({});
   const [apiKey, setApiKey] = useState("");
   const [langchainURL, setLangchainURL] = useState("https://");
+  const [urlValid, setUrlValid] = useState(false);
 
   const makeNewComponent = () => {
     const newChat = { 
@@ -52,11 +54,22 @@ function App() {
 
   function handleLangchainURLChange(e) {
     setLangchainURL(e.target.value);
+    const checkValid = isValidURL(e.target.value);
+    if (checkValid) {
+      setUrlValid(true);
+    } else {
+      setUrlValid(false);
+    };
   };
 
   function handleTypeChange(e) {
     setSamplingType(e.target.value);
   };
+
+  function isValidURL(input) {
+    const urlPattern = /^(https?|http):\/\/[^\s/$.?#].[^\s]*\.[^\s/$.?#]+$/;
+    return urlPattern.test(input);
+  }
 
   function handleRespChange(e) {
     setResponseType(e.target.value);
@@ -123,8 +136,33 @@ function App() {
   };
 
   useEffect(() => {
+    //Look for local Ollama models on the first render only.
     checkModels();
   }, []);
+
+  useEffect(() => {
+    //Check for LangChain server 2.5 seconds
+    const checkLangchain = setInterval(async () => {
+      if (responseType != "Ollama LangChain") { return; };
+      let chainServerCheck = false;
+      try {
+        chainServerCheck = await axios.post("http://localhost:8080/check");
+      } catch (error) {
+        console.clear();
+      };
+
+      if (chainServerCheck) {
+        setServerCheck(true);
+      } else {
+        setServerCheck(false);
+      };
+    }, 2500); // 1000 milliseconds = 1 second
+
+    return () => {
+      // This cleanup function will clear the interval when the component unmounts
+      clearInterval(checkLangchain);
+    };
+  }, [responseType]);
 
   return (
     <div className={`grid gap-2 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 place-items-center mt-8`}>
@@ -162,7 +200,7 @@ function App() {
                       </tr>
                       { responseType != "Ollama LangChain" &&
                         <tr>
-                          <td>
+                          <td className="pb-4">
                             System Message
                           </td>
                           <td className="">
@@ -173,7 +211,7 @@ function App() {
                     { advancedSetting && 
                       <>
                         <tr>
-                          <td>Chat Source</td>
+                          <td className="pb-4">Chat Source</td>
                           <td className="pb-4 tracking-wide text-center font-bold text-nosferatu-900">
                             <select name="responseType" id="responseType" className="hover:bg-nosferatu-400 cursor-pointer mb-2 p-4 min-w-full bg-nosferatu-100 font-mono rounded-xl text-black ring-1 hover:ring-2 ring-vonCount-900" onChange = {(e) => handleRespChange(e)} value={responseType}>
                                 <option value="OpenAI Chat">OpenAI Chat</option>
@@ -190,14 +228,30 @@ function App() {
                           : <></>
                         }
                         { responseType === "Ollama LangChain" ? 
-                          <tr>
-                            <td>Embed Source</td>
-                            <td className="pb-4 tracking-wide text-center font-bold text-nosferatu-900"><input className="w-full font-bold hover:bg-nosferatu-400 p-6 bg-nosferatu-100 text-sm font-mono text-black ring-1 hover:ring-2 ring-vonCount-900 rounded-xl" onChange = {(e) => handleLangchainURLChange(e)} type="text" value={langchainURL}></input></td>
-                          </tr>
+                          <>
+                            <tr>
+                              <td className="pb-4">Check Server</td>
+                              <td className="pb-4">
+                                { serverCheck ?
+                                <p>Local LangChain Server <span className="text-blade-900">Online</span> <i className="fa-solid fa-handshake text-blade-900 text-2xl"></i></p>
+                                : 
+                                <p>Local LangChain Server <span className="text-marcelin-900">Offline</span> <i className="fa-solid fa-triangle-exclamation text-marcelin-900 text-2xl"></i></p>
+                                }
+                              </td>
+                            </tr>
+                            <tr>
+                              { urlValid ?
+                                <td className="pb-4">Embed Source <i className="fa-solid fa-link text-blade-900"></i></td>
+                                : 
+                                <td className="pb-4">Embed Source <i className="fa-solid fa-link-slash text-marcelin-900"></i></td>
+                              }
+                              <td className="pb-4 tracking-wide text-center font-bold text-nosferatu-900"><input className="w-full font-bold hover:bg-nosferatu-400 p-6 bg-nosferatu-100 text-sm font-mono text-black ring-1 hover:ring-2 ring-vonCount-900 rounded-xl" onChange = {(e) => handleLangchainURLChange(e)} type="text" value={langchainURL}></input></td>
+                            </tr>
+                          </>
                           : <></>
                         }
                         <tr>
-                          <td>Model</td>
+                          <td className="pb-4">Model</td>
                           <td className="pb-4 tracking-wide text-center font-bold text-nosferatu-900">
                             <select name="model" id="model" className="hover:bg-nosferatu-400 cursor-pointer mb-2 p-4 min-w-full bg-nosferatu-100 font-mono rounded-xl text-black ring-1 hover:ring-2 ring-vonCount-900" onChange = {(e) => handleModelChange(e)} value={model}>
                               {modelOptions[responseType].map((option) => (
@@ -209,7 +263,7 @@ function App() {
                           </td>
                         </tr>
                         <tr>
-                          <td>Sampling Type</td>
+                          <td className="pb-4">Sampling Type</td>
                           <td className="pb-4 tracking-wide text-center font-bold text-nosferatu-900">
                             <select name="samplingType" id="samplingType" className="hover:bg-nosferatu-400 cursor-pointer mb-2 p-4 min-w-full bg-nosferatu-100 font-mono rounded-xl text-black ring-1 hover:ring-2 ring-vonCount-900" onChange = {(e) => handleTypeChange(e)} value={samplingType}>
                                 <option value="temperature">temperature</option>
@@ -219,7 +273,7 @@ function App() {
                         </tr>
                         { samplingType === "temperature" ? 
                           <tr>
-                            <td>temperature</td>
+                            <td className="pb-4">temperature</td>
                             <td className="tracking-wide text-center font-bold text-nosferatu-900">
                               <select name="temperature" id="temperature" className="hover:bg-nosferatu-400 cursor-pointer mb-2 p-4 min-w-full bg-nosferatu-100 font-mono rounded-xl text-black ring-1 hover:ring-2 ring-vonCount-900" onChange = {(e) => handleTempChange(e)} value={temperature}>
                                   <option value="0.0">0.0</option>
@@ -248,7 +302,7 @@ function App() {
                           </tr>
                         :
                           <tr>
-                            <td>top_p</td>
+                            <td className="pb-4">top_p</td>
                             <td className="tracking-wide text-center font-bold text-nosferatu-900">
                               <select name="topp" id="topp" className="hover:bg-nosferatu-400 cursor-pointer mb-2 p-4 min-w-full bg-nosferatu-100 font-mono rounded-xl text-black ring-1 hover:ring-2 ring-vonCount-900" onChange = {(e) => handleToppChange(e)} value={topp}>
                                 <option value="0.01">0.01</option>
