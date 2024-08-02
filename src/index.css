@@ -30,3 +30,7 @@
 }
 
 .element-hidden { display: none }
+
+.markdown > * {
+	all: revert;
+}
