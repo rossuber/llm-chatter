@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Chat from "./components/Chat";
 import { animated, Spring } from "react-spring";
 import debounce from 'lodash/debounce';
@@ -12,14 +12,16 @@ function App() {
   const [advancedSetting, setAdvancedSetting] = useState(false);
   const [serverCheck, setServerCheck] = useState(false);
   const [samplingType, setSamplingType] = useState("temperature");
-  const [responseType, setResponseType] = useState("Ollama Chat");
+  const [responseType, setResponseType] = useState("OpenAI Chat");
   const [temperature, setTemperature] = useState("1.0");
-  const [model, setModel] = useState("");
+  const [model, setModel] = useState("gpt-4o-mini");
   const [topp, setTopp] = useState("1.0");
   const [localModels, setLocalModels] = useState({});
   const [apiKey, setApiKey] = useState("");
   const [langchainURL, setLangchainURL] = useState("https://");
   const [urlValid, setUrlValid] = useState(false);
+  const [chosenOpenAI, setChosenOpenAI] = useState("gpt-4o-mini");
+  const [chosenOllama, setChosenOllama] = useState("");
 
   const makeNewComponent = () => {
     const newChat = { 
@@ -46,11 +48,11 @@ function App() {
 
   function handleSysMsgChange(e) {
     setSysMsg(e.target.value);
-  };
+  }
 
   function handleApiKeyChange(e) {
     setApiKey(e.target.value);
-  };
+  }
 
   function handleLangchainURLChange(e) {
     setLangchainURL(e.target.value);
@@ -59,62 +61,68 @@ function App() {
       setUrlValid(true);
     } else {
       setUrlValid(false);
-    };
-  };
+    }
+  }
 
   function handleTypeChange(e) {
     setSamplingType(e.target.value);
-  };
+  }
 
   function isValidURL(input) {
     if (/\s/.test(input)) {
       return false; // Input contains whitespace, return false.
-    };
+    }
+
     const res = input.match(/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi);
     return (res !== null);
-  };
+  }
 
   function handleRespChange(e) {
+    console.log(e.target.value);
+    //console.log(modelOptions[e.target.value]);
+
     setResponseType(e.target.value);
     switch (e.target.value) {
       case "OpenAI Chat" : 
-        setModel("gpt-4");
+        setModel(chosenOpenAI);
       break;
-      case "Ollama Chat" : 
-        setModel(model);
-      break;
-      case "Ollama LangChain" : 
-        setModel(model);
-      break;
-      default : setModel(model);
-    };
-  };
+      default : 
+        setModel(chosenOllama);
+    }
+  }
 
   function handleToppChange(e) {
     setTopp(e.target.value);
     setTemperature("1.0");
-  };
+  }
 
   function handleTempChange(e) {
     setTemperature(e.target.value);
     setTopp("1.0");
-  };
-
+  }
 
   function handleModelChange(e) {
     setModel(e.target.value);
-  };
+
+    switch (responseType) {
+      case "OpenAI Chat" : 
+        setChosenOpenAI(e.target.value);
+      break;
+      default : 
+        setChosenOllama(e.target.value);
+    }
+  }
 
   const handleCheckboxChange = (event) => { 
     const checkedYes = event.target.checked;
-    checkModels();
+    //checkModels();
 
     if (!checkedYes) {
       setTemperature("1.0");
       setTopp("1.0");
-      setResponseType("Ollama Chat");
+      setResponseType("OpenAI Chat");
       setSamplingType("temperature");
-    };
+    }
 
     setAdvancedSetting(checkedYes);
   };
@@ -122,9 +130,10 @@ function App() {
   const modelOptions = {
     "OpenAI Chat": [
       { name: "gpt-3.5-turbo" },
-      { name: "gpt-3.5-turbo-16k" },
       { name: "gpt-4" },
-      { name: "gpt-4-32k" }
+      { name: "gpt-4-turbo" },
+      { name: "gpt-4o" },
+      { name: "gpt-4o-mini" }
     ],
     "Ollama Chat": localModels,
     "Ollama LangChain": localModels
@@ -134,31 +143,40 @@ function App() {
     try {
       const response = await axios.get("http://localhost:11434/api/tags");
       setLocalModels(response.data.models);
-      setModel(response.data.models[0].name);
-    } catch (error) { console.log(error); };
+
+      switch (responseType) {
+        case "OpenAI Chat" : 
+          setModel("gpt-4o-mini");
+        break;
+        default : 
+          setModel(response.data.models[0].name);
+          setChosenOllama(response.data.models[0].name);
+      }
+      
+      //console.log(response.data.models);
+    } catch (error) { console.log(error); }
   };
 
   useEffect(() => {
-    //Look for local Ollama models on the first render only.
     checkModels();
   }, []);
 
   useEffect(() => {
     //Check for LangChain server 2.5 seconds
     const checkLangchain = setInterval(async () => {
-      if (responseType != "Ollama LangChain") { return; };
+      if (responseType != "Ollama LangChain") { return; }
       let chainServerCheck = false;
       try {
         chainServerCheck = await axios.post("http://localhost:8080/check");
       } catch (error) {
         console.clear();
-      };
+      }
 
       if (chainServerCheck) {
         setServerCheck(true);
       } else {
         setServerCheck(false);
-      };
+      }
     }, 2500); // 1000 milliseconds = 1 second
 
     return () => {
@@ -168,7 +186,7 @@ function App() {
   }, [responseType]);
 
   return (
-    <div className={`grid gap-2 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 place-items-center mt-8`}>
+    <div className={`grid gap-2 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 place-items-center mt-8`}>
         <Spring
           from={{ opacity: 0 }}
           to={[
@@ -189,7 +207,7 @@ function App() {
           ]}
           delay={400}>
           {styles => (
-            <animated.div style={styles} className="w-[98%] text-nosferatu-900 xl:col-span-2 2xl:col-span-3 place-self-start hover:bg-nosferatu-300 cursor-default bg-nosferatu-200 rounded-3xl font-bold p-6 flex items-center justify-center m-2 bg-gradient-to-tl from-nosferatu-500 hover:from-nosferatu-600 shadow-2xl hover:shadow-blade-800">
+            <animated.div style={styles} className="w-[98%] text-nosferatu-900 2xl:col-span-2 place-self-start hover:bg-nosferatu-300 cursor-default bg-nosferatu-200 rounded-3xl font-bold p-6 flex items-center justify-center m-2 bg-gradient-to-tl from-nosferatu-500 hover:from-nosferatu-600 shadow-2xl hover:shadow-blade-800">
               <div className="w-full">
                 <table className="min-w-full">
                   <tbody>
@@ -357,6 +375,6 @@ function App() {
         ))}
     </div>
   );
-};
+}
 
 export default App;
